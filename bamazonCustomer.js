@@ -64,8 +64,12 @@ function buy() {
             let productChosen = res.find(item => item.product_name == answers.product_name)
             // console.log("This is Product Chosen ========= \n", productChosen)
             if (productChosen.stock_quantity >= answers.stock_quantity){
-                console.log("Your order has been processed. Would you like to purchase anything else? \n")
-                buy();
+                let newInventory = productChosen.stock_quantity - answers.stock_quantity
+                console.log(newInventory)
+                connection.query("UPDATE products SET ? WHERE ?", [{stock_quantity: newInventory}, {item_id: productChosen.item_id}], (err, res) => {
+                    console.log("Your order has been processed. Would you like to purchase anything else? \n")
+                    buy();
+                })
             }
 
             else {
@@ -82,3 +86,7 @@ function buy() {
 
 // TODO: This means updating the SQL database to reflect the remaining quantity.
 // Once the update goes through, show the customer the total cost of their purchase.
+
+function subtractor(oldInv, purchaseQuantity){
+ return oldInv - purchaseQuantity
+}
