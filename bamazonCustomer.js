@@ -1,6 +1,9 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
 
+
+let shoppingCart = []
+
 let userName = "";
 let connection = mysql.createConnection({
     host: "localhost",
@@ -62,12 +65,20 @@ function buy() {
         .then(answers => {
             // console.log("User choice answers: \n", answers)
             let productChosen = res.find(item => item.product_name == answers.product_name)
-            // console.log("This is Product Chosen ========= \n", productChosen)
+            console.log("This is Product Chosen ========= \n", productChosen)
             if (productChosen.stock_quantity >= answers.stock_quantity){
                 let newInventory = productChosen.stock_quantity - answers.stock_quantity
-                console.log(newInventory)
+                let itemTotal = productChosen.price * answers.stock_quantity
+                shoppingCart.push(itemTotal);
+                let shoppingTotal = shoppingCart.reduce(getSum)
+                console.log(`You bought ${answers.stock_quantity} ${productChosen.product_name}'s for a total of $${itemTotal}`)
+                // console.log("The current inventory after this purchase is", newInventory);
+                console.log("Current shopping cart array is: ", shoppingCart + "\n Current total is: ", shoppingTotal)
+                
                 connection.query("UPDATE products SET ? WHERE ?", [{stock_quantity: newInventory}, {item_id: productChosen.item_id}], (err, res) => {
                     console.log("Your order has been processed. Would you like to purchase anything else? \n")
+                    
+
                     buy();
                 })
             }
@@ -90,3 +101,9 @@ function buy() {
 function subtractor(oldInv, purchaseQuantity){
  return oldInv - purchaseQuantity
 }
+
+function getSum(total, num) {
+    return total + num;
+  }
+  
+  
