@@ -77,9 +77,26 @@ function buy() {
                 
                 connection.query("UPDATE products SET ? WHERE ?", [{stock_quantity: newInventory}, {item_id: productChosen.item_id}], (err, res) => {
                     console.log("Your order has been processed. Would you like to purchase anything else? \n")
-                    
+                    inquirer.prompt([
+                        {
+                            name: "choice",
+                            message:"Would you like to purchase another item?",
+                            type: "list",
+                            choices: ["Yes", "No, I would like my total" ]
+                        }
+                    ])
+                    .then(answers => {
+                        console.log(answers)
+                        if (answers.choice == "Yes"){
+                            buy();
+                        }
 
-                    buy();
+                        else {
+                            console.log(`Thank you for shopping with bamazon! The cheap knock off of Amazon! Your total for today is $${shoppingTotal}. You may pay with cash, credit, or bitcoin!`)
+                        }
+                    })
+
+                    
                 })
             }
 
