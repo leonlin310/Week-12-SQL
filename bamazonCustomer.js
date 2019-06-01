@@ -3,6 +3,7 @@ const inquirer = require("inquirer");
 
 
 let shoppingCart = []
+let shoppingTotal = ""
 
 let userName = "";
 let connection = mysql.createConnection({
@@ -65,15 +66,15 @@ function buy() {
         .then(answers => {
             // console.log("User choice answers: \n", answers)
             let productChosen = res.find(item => item.product_name == answers.product_name)
-            console.log("This is Product Chosen ========= \n", productChosen)
+            // console.log("This is Product Chosen ========= \n", productChosen)
             if (productChosen.stock_quantity >= answers.stock_quantity){
                 let newInventory = productChosen.stock_quantity - answers.stock_quantity
                 let itemTotal = productChosen.price * answers.stock_quantity
                 shoppingCart.push(itemTotal);
-                let shoppingTotal = shoppingCart.reduce(getSum)
+                shoppingTotal = shoppingCart.reduce(getSum)
                 console.log(`You bought ${answers.stock_quantity} ${productChosen.product_name}'s for a total of $${itemTotal}`)
                 // console.log("The current inventory after this purchase is", newInventory);
-                console.log("Current shopping cart array is: ", shoppingCart + "\n Current total is: ", shoppingTotal)
+                // console.log("Current shopping cart array is: ", shoppingCart + "\n Current total is: ", shoppingTotal)
                 
                 connection.query("UPDATE products SET ? WHERE ?", [{stock_quantity: newInventory}, {item_id: productChosen.item_id}], (err, res) => {
                     console.log("Your order has been processed. Would you like to purchase anything else? \n")
@@ -86,7 +87,7 @@ function buy() {
                         }
                     ])
                     .then(answers => {
-                        console.log(answers)
+                        // console.log(answers) 
                         if (answers.choice == "Yes"){
                             buy();
                         }
@@ -101,7 +102,25 @@ function buy() {
             }
 
             else {
-                console.log("There is insufficient quantity!")
+                console.log("There is insufficient quantity! Would you like to continue shopping, or check out? \n" )
+                inquirer.prompt([
+                    {
+                        name: "choice",
+                        message: "There is insufficient quantity! Would you like to purchase another item?",
+                        type: "list",
+                        choices: ["I would like to purchase another item", "No, I would like my total"]
+                    }
+                ])
+                .then(answers => {
+                    // console.log(answers) 
+                    if (answers.choice == "Yes"){
+                        buy();
+                    }
+
+                    else {
+                        console.log(`Thank you for shopping with bamazon! The cheap knock off of Amazon! Your total for today is $${shoppingTotal}. You may pay with cash, credit, or bitcoin!`)
+                    }
+                })
             }
         })
 
